@@ -1,3 +1,6 @@
 [submodule "nutritional-advice-microservice"]
 	path = nutritional-advice-microservice
 	url = https://github.com/MaxLyonel/asesoramiento-nutricional.git
+[submodule "api-gateway-nur-grupo1"]
+	path = api-gateway-nur-grupo1
+	url = https://github.com/NoeRous/api-gateway-nur-grupo1.git
