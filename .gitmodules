@@ -1,0 +1,3 @@
+[submodule "nutritional-advice-microservice"]
+	path = nutritional-advice-microservice
+	url = https://github.com/MaxLyonel/asesoramiento-nutricional.git
