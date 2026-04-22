@@ -149,13 +149,8 @@ services:
       cache_from:
         - api-gateway:latest
     container_name: api-gateway
-    environment:
-      - KAFKA_BROKER=kafka:9092
-      - DATABASE_HOST=postgres-api
-      - DATABASE_PORT=5432
-      - DATABASE_USER=maxramirez
-      - DATABASE_PASSWORD=22leorexx100
-      - DATABASE_NAME=nutritional_advice
+    env_file:
+      - ./api-gateway-nur-grupo1/.env
     ports:
       - "4000:4000"
     depends_on:
