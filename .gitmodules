@@ -7,3 +7,6 @@
 [submodule "delivery-microservice_nur"]
 	path = delivery-microservice_nur
 	url = https://github.com/NoeRous/delivery-microservice_nur.git
+[submodule "ms-auth-service"]
+	path = ms-auth-service
+	url = git@github.com:MaxLyonel/ms-auth-service.git
