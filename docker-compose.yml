@@ -139,6 +139,26 @@ services:
       - "5435:5432"
     volumes:
       - pgdata_delivery:/var/lib/postgresql/data
+  
+  # ----------------------
+  # PostgreSQL Production
+  # ----------------------
+  postgres-production:
+    image: postgres:16-alpine
+    container_name: postgres-production
+    environment:
+      POSTGRES_USER: maxramirez
+      POSTGRES_PASSWORD: 22leorexx100
+      POSTGRES_DB: production_db
+    command: >
+      postgres -c wal_level=logical
+               -c max_replication_slots=5
+               -c max_wal_senders=5
+               -c listen_addresses='*'
+    ports:
+      - "5436:5432"
+    volumes:
+      - pgdata_production:/var/lib/postgresql/data
 
   # ----------------------
   # API Gateway
@@ -217,8 +237,24 @@ services:
       - kafka
       - postgres-delivery
 
+   # ----------------------
+  # Production Microservice
+  # ----------------------
+  production:
+    build:
+      context: ./production-microservice-nur
+    container_name: production
+    env_file:
+      - ./production-microservice-nur/.env
+    ports:
+      - "3200:3000"
+    depends_on:
+      - kafka
+      - postgres-production
+
 
 volumes:
   pgdata_auth:
   pgdata_nutritional:
   pgdata_delivery:
+  pgdata_production:
