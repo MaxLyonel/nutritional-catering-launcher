@@ -1,82 +1,64 @@
 version: '3.9'
 
 services:
+
   # ----------------------
-  # Zookeeper
+  # ZOOKEEPER
   # ----------------------
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
   # ----------------------
-  # Kafka Broker
+  # KAFKA
   # ----------------------
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: kafka
     depends_on:
-      zookeeper:
-          condition: service_healthy
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+
+      # 🔥 CLAVE: doble listener (interno + externo)
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     ports:
       - "9092:9092"
-    healthcheck:
-      test:
-        [
-          'CMD',
-          'kafka-topics',
-          '--bootstrap-server',
-          'localhost:9092',
-          '--list'
-        ]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 30s
+      - "29092:29092"
 
   # ----------------------
-  # Kafka Connect
+  # KAFKA CONNECT (DEBEZIUM)
   # ----------------------
   kafka-connect:
     image: debezium/connect:2.2
-    platform: linux/amd64
     container_name: kafka-connect
     depends_on:
       - kafka
     environment:
       BOOTSTRAP_SERVERS: kafka:9092
-      GROUP_ID: "connect-cluster"
-      CONFIG_STORAGE_TOPIC: 'connect-configs'
-      OFFSET_STORAGE_TOPIC: 'connect-offsets'
-      STATUS_STORAGE_TOPIC: 'connect-status'
-      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: 'false'
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: 'false'
-      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
-      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      GROUP_ID: connect-cluster
+      CONFIG_STORAGE_TOPIC: connect-configs
+      OFFSET_STORAGE_TOPIC: connect-offsets
+      STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
-      CONNECT_PLUGIN_PATH: /kafka/connect
     ports:
       - "8083:8083"
 
   # ----------------------
-  # PostgreSQL API Gateway
+  # POSTGRES AUTH
   # ----------------------
   postgres-auth:
     image: postgres:16-alpine
@@ -85,23 +67,20 @@ services:
       POSTGRES_USER: maxramirez
       POSTGRES_PASSWORD: 22leorexx100
       POSTGRES_DB: auth_db
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U maxramirez"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    command: >
-      postgres -c wal_level=logical
-               -c max_replication_slots=5
-               -c max_wal_senders=5
-               -c listen_addresses='*'
     ports:
       - "5433:5432"
     volumes:
       - pgdata_auth:/var/lib/postgresql/data
 
+    # 🔥 FIX DEL ERROR
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U maxramirez -d auth_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ----------------------
-  # PostgreSQL Nutritional Advice
+  # POSTGRES NUTRITIONAL
   # ----------------------
   postgres-nutritional:
     image: postgres:16-alpine
@@ -110,18 +89,13 @@ services:
       POSTGRES_USER: maxramirez
       POSTGRES_PASSWORD: 22leorexx100
       POSTGRES_DB: nutritional_advice
-    command: >
-      postgres -c wal_level=logical
-               -c max_replication_slots=5
-               -c max_wal_senders=5
-               -c listen_addresses='*'
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - pgdata_nutritional:/var/lib/postgresql/data
 
   # ----------------------
-  # PostgreSQL Delivery
+  # POSTGRES DELIVERY
   # ----------------------
   postgres-delivery:
     image: postgres:16-alpine
@@ -130,11 +104,6 @@ services:
       POSTGRES_USER: maxramirez
       POSTGRES_PASSWORD: 22leorexx100
       POSTGRES_DB: delivery_db
-    command: >
-      postgres -c wal_level=logical
-               -c max_replication_slots=5
-               -c max_wal_senders=5
-               -c listen_addresses='*'
     ports:
       - "5435:5432"
     volumes:
@@ -161,41 +130,10 @@ services:
       - pgdata_production:/var/lib/postgresql/data
 
   # ----------------------
-  # API Gateway
-  # ----------------------
-  api-gateway:
-    build:
-      context: ./api-gateway-nur-grupo1
-      cache_from:
-        - api-gateway:latest
-    container_name: api-gateway
-    env_file:
-      - ./api-gateway-nur-grupo1/.env
-    ports:
-      - "4000:4000"
-    depends_on:
-      kafka:
-          condition: service_healthy
-      postgres-auth:
-          condition: service_healthy
-    healthcheck:
-      test:
-        [
-          "CMD",
-          "curl",
-          "-f",
-          "http://localhost:4000/health"
-        ]
-      interval: 10s
-      timeout: 5s
-      start_period: 20s
-
-  # ----------------------
-  # Auth Service
+  # AUTH SERVICE
   # ----------------------
   auth-service:
-    build:
-      context: ./ms-auth-service
+    build: ./ms-auth-service
     container_name: ms-auth-service
     env_file:
       - ./ms-auth-service/.env
@@ -207,11 +145,26 @@ services:
     restart: unless-stopped
 
   # ----------------------
-  # Nutritional Advice Microservice
+  # API GATEWAY
+  # ----------------------
+  api-gateway:
+    build: ./api-gateway-nur-grupo1
+    container_name: api-gateway
+    env_file:
+      - ./api-gateway-nur-grupo1/.env
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
+  # ----------------------
+  # MICROSERVICIOS
   # ----------------------
   nutritional-advice:
-    build:
-      context: ./nutritional-advice-microservice
+    build: ./nutritional-advice-microservice
     container_name: nutritional-advice
     env_file:
       - ./nutritional-advice-microservice/.env
@@ -220,14 +173,9 @@ services:
     depends_on:
       - kafka
       - postgres-nutritional
-    restart: unless-stopped
 
-  # ----------------------
-  # Delivery Microservice
-  # ----------------------
   delivery:
-    build:
-      context: ./delivery-microservice_nur
+    build: ./delivery-microservice_nur
     container_name: delivery
     env_file:
       - ./delivery-microservice_nur/.env
@@ -237,7 +185,7 @@ services:
       - kafka
       - postgres-delivery
 
-   # ----------------------
+  # ----------------------
   # Production Microservice
   # ----------------------
   production:
