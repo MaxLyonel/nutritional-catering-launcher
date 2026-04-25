@@ -13,3 +13,15 @@
 [submodule "production-microservice-nur"]
 	path = production-microservice-nur
 	url = https://github.com/NoeRous/production-microservice-nur.git
+[submodule "eureka-server"]
+	path = eureka-server
+	url = https://github.com/fernandomn1983/eureka-server.git
+[submodule "api-gateway-spring"]
+	path = api-gateway-spring
+	url = https://github.com/fernandomn1983/api-gateway-spring-cloud-gateway.git
+[submodule "database-contract-services"]
+	path = database-contract-services
+	url = https://github.com/fernandomn1983/database-contract-services.git
+[submodule "contract-services-microservice"]
+	path = contract-services-microservice
+	url = https://github.com/fernandomn1983/contract-services.git
