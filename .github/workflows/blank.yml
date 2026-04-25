@@ -14,14 +14,15 @@ jobs:
           submodules: 'recursive'
 
       - name: Deploy to Droplet via SSH
-        uses: appleboy/ssh-action@master
+        uses: appleboy/ssh-action@v1.0.3  # Use specific version instead of master
         with:
           host: ${{ secrets.DROPLET_IP }}
           username: ${{ secrets.DROPLET_USERNAME }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
+          port: ${{ secrets.DROPLET_PORT }}
           script: |
-            mkdir /opt/nurtricenter
-            cd /opt/nurtricenter
+            mkdir /opt/nutritional-catering-launcher
+            cd /opt/nutritional-catering-launcher
             git pull --recurse-submodules
             docker compose up -d --build
             docker system prune -af
