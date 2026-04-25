@@ -175,8 +175,8 @@ services:
   delivery:
     build: ./delivery-microservice_nur
     container_name: delivery
-    env_file:
-      - ./delivery-microservice_nur/.env
+    #env_file:
+    #  - ./delivery-microservice_nur/.env
     ports:
       - "3100:3000"
     depends_on:
