@@ -9,7 +9,7 @@
 	url = https://github.com/NoeRous/delivery-microservice_nur.git
 [submodule "ms-auth-service"]
 	path = ms-auth-service
-	url = git@github.com:MaxLyonel/ms-auth-service.git
+	url = https://github.com/MaxLyonel/ms-auth-service.git
 [submodule "production-microservice-nur"]
 	path = production-microservice-nur
 	url = https://github.com/NoeRous/production-microservice-nur.git
