@@ -133,8 +133,8 @@ services:
   auth-service:
     build: ./ms-auth-service
     container_name: ms-auth-service
-    env_file:
-      - ./ms-auth-service/.env
+    #env_file:
+    #  - ./ms-auth-service/.env
     ports:
       - "3500:3000"
     depends_on:
@@ -148,8 +148,8 @@ services:
   api-gateway:
     build: ./api-gateway-nur-grupo1
     container_name: api-gateway
-    env_file:
-      - ./api-gateway-nur-grupo1/.env
+    #env_file:
+    #  - ./api-gateway-nur-grupo1/.env
     ports:
       - "4000:4000"
     depends_on:
@@ -164,8 +164,8 @@ services:
   nutritional-advice:
     build: ./nutritional-advice-microservice
     container_name: nutritional-advice
-    env_file:
-      - ./nutritional-advice-microservice/.env
+    #env_file:
+    #  - ./nutritional-advice-microservice/.env
     ports:
       - "3001:3000"
     depends_on:
@@ -190,8 +190,8 @@ services:
     build:
       context: ./production-microservice-nur
     container_name: production
-    env_file:
-      - ./production-microservice-nur/.env
+    #env_file:
+    #  - ./production-microservice-nur/.env
     ports:
       - "3200:3000"
     depends_on:
