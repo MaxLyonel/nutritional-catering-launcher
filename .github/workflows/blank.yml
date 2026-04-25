@@ -13,7 +13,7 @@ jobs:
         with:
           submodules: 'recursive'
 
-      - name: Deploy to Droplet via SSH #aqui
+      - name: Deploy to Droplet via SSH #aqui esto
         uses: appleboy/ssh-action@v1.0.3  # Use specific version instead of master
         with:
           host: ${{ secrets.DROPLET_IP }}
